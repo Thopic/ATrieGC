@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 import setuptools
 
-__version__ = '0.0.1'
+__version__ = '0.0.4'
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
