@@ -6,11 +6,9 @@ jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if:  github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 3.10, 3.11, 3.12, 3.13] # Remove pypy
-        # macos-13 is an intel runner, macos-14 is apple silicon
         os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
 
     steps:
@@ -18,13 +16,8 @@ jobs:
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.20.0
-        # env:
-        #   CIBW_SOME_OPTION: value
-        #    ...
-        # with:
-        #   package-dir: .
-        #   output-dir: wheelhouse
-        #   config-file: "{package}/pyproject.toml"
+        env:
+          CIBW_SKIP: "pp*_*"  # Skip all PyPy builds
 
       - uses: actions/upload-artifact@v4
         with:
@@ -34,20 +27,20 @@ jobs:
   make_sdist:
     name: Make SDist
     runs-on: ubuntu-latest
-    if:  github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Optional, use if you use setuptools_scm
-        submodules: true  # Optional, use if you have submodules
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Optional, use if you use setuptools_scm
+          submodules: true  # Optional, use if you have submodules
 
-    - name: Build SDist
-      run: pipx run build --sdist
+      - name: Build SDist
+        run: pipx run build --sdist
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: cibw-sdist
-        path: dist/*.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
 
   upload_all:
     needs: [build_wheels, make_sdist]
@@ -55,14 +48,14 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    if:  github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     steps:
-    - uses: actions/download-artifact@v4
-      with:
-        pattern: cibw-*
-        path: dist
-        merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
 
-    - uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
