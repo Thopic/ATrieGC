@@ -112,7 +112,8 @@ setup(
     author_email='dupic.thomas@gmail.com',
     description='A module using prefix trees to store/search nucleotides sequences',
     url='https://github.com/statbiophys/ATrieGC',
-    long_description='',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     ext_modules=ext_modules,
     setup_requires=['pybind11>=2.5.0'],
     classifiers=[
